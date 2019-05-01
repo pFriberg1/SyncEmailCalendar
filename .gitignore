@@ -6,4 +6,6 @@ o365_token.txt
 
 *.pickle
 
+*.vscode/
+
 __pycache__/
