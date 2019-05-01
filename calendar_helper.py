@@ -71,7 +71,7 @@ def get_mt_event(start_date):
 
 
 def delete_event(start_time):
-    print('Deleteing: ' + str(start_time))
+    print('Deleting: ' + str(start_time))
     event = get_mt_event(start_time)
     if event is not None:
         eid = event['id']

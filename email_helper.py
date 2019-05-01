@@ -48,15 +48,21 @@ def string_to_date(regex_str):
         return datetime(year, MONTH_TO_NUM_MAP[month], day, hour, minutes)
 
 
+def sort_messages(inbox):
+        msg_list = []
+        for message in inbox.get_messages():
+                msg_list.append(message)
+        
+        msg_list.sort(key = lambda m: m.created)
+        return msg_list
+
 def get_emails():
         auth_user()
         mailbox = MailBox(con=con, protocol=prot)
         inbox = mailbox.inbox_folder()
-        msg_list = []
-        for message in inbox.get_messages():
-                msg_list.append(message)
-                
-        for msg in reversed(msg_list):
+        sorted_messages = sort_messages(inbox)
+        
+        for msg in sorted_messages:
                 if msg.subject.lower().startswith('bokning av thai'):
                         res = re.findall(r'(?<=dag )(.*)(?=<\/h2)', msg.body, re.MULTILINE)[0].split(' ')
                         
