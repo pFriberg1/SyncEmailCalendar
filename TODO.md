@@ -4,4 +4,4 @@
 - [ ] Fixa serve som kör scriptet var 15:e min
 
 ### Viktigt
-[ ] Istället för o365 använd requests  
+[] Istället för o365 använd requests  
