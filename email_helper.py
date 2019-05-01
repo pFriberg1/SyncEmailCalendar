@@ -1,13 +1,29 @@
 from O365 import Connection, MSGraphProtocol, Message, MailBox, Account
 import re
-import datetime
+from datetime import datetime
 import json
+import calendar_helper 
 
 with open('email.secrets.json', 'r') as f:
         secrets = json.loads(f.read()) 
 
 CLIENT_ID = secrets['email_client_id']
 CLIENT_SECRET = secrets['email_client_secret']
+MONTH_TO_NUM_MAP = {
+       'januari': 1, 
+       'februari': 2, 
+       'mars': 3, 
+       'april': 4, 
+       'maj': 5, 
+       'juni': 6, 
+       'juli': 7, 
+       'augusti': 8, 
+       'september': 9, 
+       'oktober': 10, 
+       'november': 11, 
+       'december': 12
+}
+
     
 prot = MSGraphProtocol()
 con = Connection((CLIENT_ID, CLIENT_SECRET))
@@ -21,18 +37,43 @@ def auth_user():
                 account.authenticate(scopes=scopes)    
 
 
+def string_to_date(regex_str):
+        day = int(regex_str[0])
+        month = regex_str[1]
+        time = regex_str[3].split(':')
+        year = datetime.now().year
+        hour = int(time[0])
+        minutes = int(time[1])
+
+        return datetime(year, MONTH_TO_NUM_MAP[month], day, hour, minutes)
+
+
 def get_emails():
         auth_user()
         mailbox = MailBox(con=con, protocol=prot)
         inbox = mailbox.inbox_folder()
+        msg_list = []
         for message in inbox.get_messages():
-                if 'bokning av thai' in message.subject.lower():
-                        res = re.findall(r'(?<=dag )(.*)(?=<\/h2)', message.body, re.MULTILINE)[0].split(' ')
-                        day = res[0]
-                        month = res[1]
-                        time = res[3]
-                        print(str(datetime.datetime.now()))
-                        print("Day: " + day + " Month: " + month + " time: " + time)
+                msg_list.append(message)
+                
+        for msg in reversed(msg_list):
+                if msg.subject.lower().startswith('bokning av thai'):
+                        res = re.findall(r'(?<=dag )(.*)(?=<\/h2)', msg.body, re.MULTILINE)[0].split(' ')
+                        
+                        date = string_to_date(res)
+                        
+                        if date > datetime.now():
+                                calendar_helper.book_muay_thai(date)
+
+                elif msg.subject.lower().startswith('avbokning av thai'):
+                        res = re.findall(r'(?<=dag )(.*)(?=<\/h2)', msg.body, re.MULTILINE)[0].split(' ')
+
+                        date = string_to_date(res)
+
+                        if date > datetime.now():
+                                calendar_helper.delete_event(date)
+
+                
 
 
 get_emails()

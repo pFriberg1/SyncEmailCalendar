@@ -1,7 +1,9 @@
 from __future__ import print_function
-import datetime
+from datetime import datetime, timedelta
+import pytz 
 import pickle
 import os.path
+import json
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -9,7 +11,7 @@ from google.auth.transport.requests import Request
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-def main():
+def get_service():
     """Shows basic usage of the Google Calendar API.
     Prints the start and name of the next 10 events on the user's calendar.
     """
@@ -34,19 +36,57 @@ def main():
 
     service = build('calendar', 'v3', credentials=creds)
 
-    # Call the Calendar API
-    now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
-    print('Getting the upcoming 10 events')
-    events_result = service.events().list(calendarId='primary', timeMin=now,
-                                        maxResults=10, singleEvents=True,
-                                        orderBy='startTime').execute()
-    events = events_result.get('items', [])
+    return service
 
-    if not events:
-        print('No upcoming events found.')
+
+def create_event(summary, location, start_date_time, end_date_time):
+    return {
+        'summary': summary,
+        'location': location,
+        'start': {
+            'dateTime': start_date_time,
+            'timeZone': 'Europe/Stockholm'
+
+        },
+        'end' : {
+            'dateTime': end_date_time,
+            'timeZone': 'Europe/Stockholm'
+        }
+    }
+
+
+def get_all_events():
+    min_time = datetime.now().utcnow().isoformat() + 'Z'
+    events = get_service().events().list(calendarId='primary', timeMin=min_time, singleEvents=True).execute()
+    return  events.get('items', [])
+    
+def get_mt_event(start_date):
+    events = get_all_events()
+
     for event in events:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        print(start, event['summary'])
+        if event['summary'] == 'Muay Thai' and str(start_date.isoformat()) in event['start']['dateTime']:
+            return event
 
-if __name__ == '__main__':
-    main()
+    return None
+
+
+def delete_event(start_time):
+    print('Deleteing: ' + str(start_time))
+    event = get_mt_event(start_time)
+    if event is not None:
+        eid = event['id']
+        get_service().events().delete(calendarId='primary', eventId=eid).execute()
+
+
+
+def book_muay_thai(date_time):
+    print('Booking: ' + str(date_time))
+    start_time = date_time.strftime('%Y-%m-%dT%H:%M:%S')
+    if get_mt_event(date_time) is None:
+        end_time = (date_time + timedelta(hours=1, minutes=30)).strftime('%Y-%m-%dT%H:%M:%S')
+        event = create_event('Muay Thai', 'Fighcenter', start_time, end_time)
+        events = get_service().events()
+
+        events.insert(calendarId='primary', body=event).execute()
+    return
+
