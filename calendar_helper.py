@@ -1,6 +1,6 @@
 from __future__ import print_function
 from datetime import datetime, timedelta
-import pytz 
+import pytz
 import pickle
 import os.path
 import json
@@ -10,6 +10,7 @@ from google.auth.transport.requests import Request
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar']
+
 
 def get_service():
     """Shows basic usage of the Google Calendar API.
@@ -48,7 +49,7 @@ def create_event(summary, location, start_date_time, end_date_time):
             'timeZone': 'Europe/Stockholm'
 
         },
-        'end' : {
+        'end': {
             'dateTime': end_date_time,
             'timeZone': 'Europe/Stockholm'
         }
@@ -58,8 +59,9 @@ def create_event(summary, location, start_date_time, end_date_time):
 def get_all_events():
     min_time = datetime.now().utcnow().isoformat() + 'Z'
     events = get_service().events().list(calendarId='primary', timeMin=min_time, singleEvents=True).execute()
-    return  events.get('items', [])
-    
+    return events.get('items', [])
+
+
 def get_mt_event(start_date):
     events = get_all_events()
 
@@ -78,7 +80,6 @@ def delete_event(start_time):
         get_service().events().delete(calendarId='primary', eventId=eid).execute()
 
 
-
 def book_muay_thai(date_time):
     print('Booking: ' + str(date_time))
     start_time = date_time.strftime('%Y-%m-%dT%H:%M:%S')
@@ -89,4 +90,3 @@ def book_muay_thai(date_time):
 
         events.insert(calendarId='primary', body=event).execute()
     return
-
