@@ -75,7 +75,6 @@ def get_emails():
                         time_rec = msg.received
                         time_rec = time_rec.replace(tzinfo=None)
                        
-                        # if date > datetime.now():
                         if time_rec > (datetime.now() - timedelta(minutes=UPDATE_FREQUENCY)):
                                 print('Bokning: ' + msg.subject + " Rec: " + str(msg.received) + " datum: " + str(date))
                                 calendar_helper.book_muay_thai(date)
@@ -91,7 +90,6 @@ def get_emails():
                         time_rec = msg.received
                         time_rec = time_rec.replace(tzinfo=None)
                        
-                        # if date > datetime.now():
                         if time_rec > (datetime.now() - timedelta(minutes=UPDATE_FREQUENCY)):
                                 print('Avbokning: ' + msg.subject + " Rec: " + str(msg.received) + " datum: " + str(date))
                                 calendar_helper.delete_event(date)
